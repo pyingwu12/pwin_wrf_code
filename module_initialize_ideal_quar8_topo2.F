@@ -94,12 +94,12 @@ CONTAINS
    REAL, DIMENSION(nl_max) :: zk, p_in, theta, rho, u, v, qv, pd_in
    INTEGER :: nl_in, icount
 
-
+   INTEGER :: icmx, icmy
    INTEGER :: icm,jcm, ii, im1, jj, jm1, loop, error, fid, nxc, nyc, lm
    REAL    :: u_mean,v_mean, f0, p_surf, p_level, qvf, z_at_v, z_at_u
    REAL    :: z_scale, xrad, yrad, zrad, rad, delt, cof1, cof2
 !   REAL, EXTERNAL :: interp_0
-   REAL    :: hm, xa
+   REAL    :: hm, xa, ya
    REAL    :: pi, rnd
 
 !  stuff from original initialization that has been dropped from the Registry
@@ -201,6 +201,13 @@ CONTAINS
    nyc = (jde-jds)/2
 
   CASE ( quarter_ss )
+
+   hm=1000.
+   xa=5.
+   ya=5.
+   icmx=ide/2
+   icmy=jde/2
+
    stretch_grid = .true.
 !   delt = 3.
    delt = 0.2
@@ -1043,7 +1050,24 @@ CONTAINS
   ENDDO
   ENDDO
 
-  CASE (quarter_ss, convrad, squall2d_x, squall2d_y, grav2d_x, b_wave, seabreeze2d_x)
+  CASE (quarter_ss)
+!  hm=1000.
+!  xa=15.
+!  ya=15.
+!  icmx=ide/2
+!  icmy=jde/2
+  DO j=jts,jte
+  DO i=its,ite
+!!    grid%ht(i,j) = hm/(1.+(float(i-icm)/xa)**2)
+    grid%ht(i,j) = hm * exp(- ( float(i-icmx)/(2*xa) )**2   &
+                            - ( float(j-icmy)/(2*ya) )**2  )
+    grid%phb(i,1,j) = g*grid%ht(i,j)
+    grid%php(i,1,j) = 0.
+    grid%ph0(i,1,j) = grid%phb(i,1,j)
+  ENDDO
+  ENDDO
+
+  CASE (convrad, squall2d_x, squall2d_y, grav2d_x, b_wave, seabreeze2d_x)
   DO j=jts,jte
   DO i=its,ite  
     grid%ht(i,j) = 0.
